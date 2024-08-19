@@ -255,8 +255,11 @@ $(function () {
                         if ($res.resource_type === 'video') {
                             let value = `<video controls><source src="${$res.url}" type="video/mp4"></video>`;
                             window.editor.insertValue(value);
-                        } else {
+                        } else if ($res.resource_type === 'image') {
                             let value = '![](' + $res.url + ')';
+                            window.editor.insertValue(value);
+                        } else {
+                            let value = '[上传文件:' + $res.alt + '](' + $res.url + ')';
                             window.editor.insertValue(value);
                         }
                     } else {

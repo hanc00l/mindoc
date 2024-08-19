@@ -392,6 +392,7 @@
 <script src="{{cdnjs "/static/turndown/turndown.js"}}" type="text/javascript"></script>
 <script src="{{cdnjs "/static/js/word-to-html.js"}}" type="text/javascript"></script>
 <script src="{{cdnjs "/static/js/html-to-markdown.js"}}" type="text/javascript"></script>
+<script src="{{cdnjs "/static/js/diff.js"}}" type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
         

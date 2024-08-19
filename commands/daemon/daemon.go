@@ -56,7 +56,7 @@ func (d *Daemon) Run() {
 
 	web.ErrorController(&controllers.ErrorController{})
 
-	f, err := filepath.Abs(os.Args[0])
+	f, err := filepath.Abs(conf.WorkingDirectory) //os.Args[0])
 
 	if err != nil {
 		f = os.Args[0]

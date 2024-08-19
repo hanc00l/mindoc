@@ -268,4 +268,7 @@ func init() {
 	web.Router("/items", &controllers.ItemsetsController{}, "get:Index")
 	web.Router("/items/:key", &controllers.ItemsetsController{}, "get:List")
 
+	web.Router("/ws", &controllers.WebSocketController{})
+	web.Router("/ws/markdown", &controllers.WebSocketController{}, "*:Index")
+
 }

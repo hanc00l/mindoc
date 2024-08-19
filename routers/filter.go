@@ -38,6 +38,7 @@ func init() {
 	web.InsertFilter("/book/*", web.BeforeRouter, FilterUser)
 	web.InsertFilter("/api/*", web.BeforeRouter, FilterUser)
 	web.InsertFilter("/manage/*", web.BeforeRouter, FilterUser)
+	web.InsertFilter("/ws/*", web.BeforeRouter, FilterUser)
 
 	var FinishRouter = func(ctx *context.Context) {
 		ctx.ResponseWriter.Header().Add("MinDoc-Version", conf.VERSION)

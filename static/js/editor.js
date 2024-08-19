@@ -441,12 +441,12 @@ function uploadImage($id, $callback) {
 function uploadResource($id, $callback) {
     locales = {
         'zh-CN': {
-            unsupportType: '不支持的图片/视频格式',
-            uploadFailed: '图片/视频上传失败'
+            unsupportType: '不支持的图片/视频/文件格式',
+            uploadFailed: '图片/视频/文件上传失败'
         },
         'en': {
-            unsupportType: 'Unsupport image/video type',
-            uploadFailed: 'Upload image/video failed'
+            unsupportType: 'Unsupport image/video/file type',
+            uploadFailed: 'Upload image/video/file failed'
         }
     }
     /** 粘贴上传的资源 **/
@@ -479,6 +479,36 @@ function uploadResource($id, $callback) {
                         case "video/webm":
                             fileName += ".webm";
                             break;
+                        case "application/pdf":
+                            fileName += ".pdf"
+                            break
+                        case "application/msword":
+                            fileName += ".doc"
+                            break
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                            fileName += ".docx"
+                            break
+                        case "application/vnd.ms-excel":
+                            fileName += ".xls"
+                            break
+                        case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                            fileName += ".xlsx"
+                            break
+                        case "application/vnd.ms-powerpoint":
+                            fileName += ".ppt"
+                            break
+                        case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+                            fileName += ".pptx"
+                            break
+                        case "text/plain":
+                            fileName += ".txt"
+                            break
+                        case "application/zip":
+                            fileName += ".zip"
+                            break
+                        case "application/x-7z-compressed":
+                            fileName += ".7z"
+                            break
                         default :
                             layer.msg(locales[lang].unsupportType);
                             return;

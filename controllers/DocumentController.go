@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -963,6 +964,23 @@ func (c *DocumentController) Content() {
 	attach, err := models.NewAttachment().FindListByDocumentId(doc.DocumentId)
 	if err == nil {
 		doc.AttachList = attach
+	}
+
+	if vul, ok := MemoryMarkDownMap[docId]; ok {
+		if vul.MarkDown != "" {
+			if vul.ModifyTime.After(doc.ModifyTime) {
+				doc.Markdown = vul.MarkDown
+			}
+		}
+	} else {
+		wsMD := WsMarkDown{}
+		wsMD.Name = doc.DocumentName
+		wsMD.Conns = nil
+		wsMD.DocId = doc.DocumentId
+		wsMD.Lock = &sync.Mutex{}
+		wsMD.MarkDown = doc.Markdown
+		wsMD.ModifyTime = time.Now()
+		MemoryMarkDownMap[docId] = &wsMD
 	}
 
 	c.JsonResult(0, "ok", doc)

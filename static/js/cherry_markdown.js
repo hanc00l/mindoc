@@ -288,6 +288,67 @@ $(function () {
         //callback: {
         //changeString2Pinyin: pinyin,
         //}
+        callback: {
+            afterChange: function () {
+                if (window.mysocket != undefined && window.mysocket != null) {
+                    if (window.editor.getMarkdown() != window.mysocket["LastUpdate"]) {
+                        var index = layer.load(1, {
+                            shade: [0.1, '#fff'] // 0.1 透明度的白色背景
+                        });
+
+                        var diffs = Diff['diffChars'](window.mysocket["LastChange"], window.editor.getMarkdown());
+                        var is_change = false
+
+                        var chageArr = [];
+
+                        for (var i=0;i<diffs.length;i++){
+                            if (diffs[i]["removed"] || diffs[i]["added"] ){
+                                if (diffs[i]["added"]){
+                                    chageArr.push({"count":diffs[i]["count"],"type":1,"value":diffs[i]["value"]})
+                                }else if (diffs[i]["removed"]){
+                                    chageArr.push({"count":diffs[i]["count"],"type":2,"value":diffs[i]["value"]})
+                                }
+                                is_change = true
+                            }else{
+                                chageArr.push({"count":diffs[i]["count"],"type":0,"value":""})
+                            }
+                        }
+                        if (is_change){
+                            console.log(chageArr)
+                        }
+                        if (window.mysocket["Socket"].readyState === 1) {
+                            obj = {
+                                "opt": 1,
+                                "name": window.mysocket["DocName"],
+                                "diffs":chageArr,
+                                "doc_id": window.mysocket["doc_id"],
+                                // "mark_down": window.editor.getMarkdown(),
+                                "mark_down": "",
+                                "random_id": window.mysocket["random_id"]
+                            };
+                            window.mysocket["Socket"].send(JSON.stringify(obj));
+                            window.mysocket["LastChange"] = window.editor.getMarkdown();
+                            window.mysocket["LastUpdate"] = window.editor.getMarkdown();
+                        }
+
+                        layer.close(index);
+
+                        console.log("send message")
+
+                    }
+                }else{
+                    console.log("???content copy")
+                }
+            },
+            // afterInit: callbacks.afterInit,
+            // beforeImageMounted: callbacks.beforeImageMounted,
+            // // 预览区域点击事件，previewer.enablePreviewerBubble = true 时生效
+            // onClickPreview: callbacks.onClickPreview,
+            // // 复制代码块代码时的回调
+            // onCopyCode: callbacks.onCopyCode,
+            // // 把中文变成拼音的回调，当然也可以把中文变成英文、英文变成中文
+            // changeString2Pinyin: callbacks.changeString2Pinyin,
+        }
     };
 
     fetch('').then((response) => response.text()).then((value) => {
@@ -317,6 +378,75 @@ $(function () {
                 try {
                     window.editor.setTheme(res.data.markdown_theme);
                     window.editor.setMarkdown(res.data.markdown);
+
+                    RandomId = Math.round(Math.random() * 100000000);
+                    protocol1='ws://'
+                    if (document.location.protocol=="https:"){
+                        protocol1='wss://'
+                    }
+                    socket = new WebSocket(protocol1 + window.location.host + '/ws/markdown?DocName=' + res.data.doc_name + '&DocId=' + res.data.doc_id + '&RandomId=' + RandomId);
+                    if (window.mysocket!=undefined && window.mysocket!=null){
+                        window.mysocket["Socket"].close()
+                        window.mysocket = undefined;
+                    }
+                    window.mysocket = {
+                        "DocName": res.data.doc_name,
+                        "doc_id": res.data.doc_id,
+                        "Socket": socket,
+                        "random_id": RandomId,
+                        "version_id": 1
+                    }
+                    window.mysocket["LastUpdate"] =window.editor.getMarkdown();
+                    window.mysocket["LastChange"] =window.editor.getMarkdown();
+
+                    // window.mysocket = socket;
+                    socket.onmessage = function (event) {
+                        var data = JSON.parse(event.data);
+                        switch (data.opt) {
+                            case 0:
+                                break;
+                            case 1:
+                                if (data.random_id != window.mysocket["random_id"] && data.doc_id ==  window.mysocket["doc_id"] && data.diffs!=undefined && data.diffs!=null){
+                                    // if (data.random_id != window.mysocket["random_id"] && data.doc_id ==  window.mysocket["doc_id"] && data.mark_down != window.editor.getMarkdown()  ) {
+
+                                    // window.mysocket["LastUpdate"] = data.mark_down;
+                                    var index = layer.load(1, {
+                                        shade: [0.1, '#fff'] // 0.1 透明度的白色背景
+                                    });
+
+                                    if (data.diffs.length>0){
+                                        var lastv = window.mysocket["LastChange"];
+                                        var count = 0;
+                                        var ct="";
+                                        for (var i=0;i<data.diffs.length;i++){
+                                            if (data.diffs[i]["type"]==0){
+                                                ct+=lastv.slice(count,count+data.diffs[i]["count"]);
+                                                count+=data.diffs[i]["count"];
+                                            }else if (data.diffs[i]["type"]==1){
+                                                ct+=data.diffs[i]["value"];
+                                            }else if (data.diffs[i]["type"]==2){
+                                                count+=data.diffs[i]["count"];
+                                            }
+                                        }
+                                        window.mysocket["LastChange"] = ct;
+                                        window.editor.setMarkdown(ct, keepCursor = true);
+                                        window.mysocket["version_id"]++;
+                                        layer.close(index);
+                                        ct="";
+                                    }
+
+
+                                    // window.editor.setMarkdown(data.mark_down, keepCursor = true);
+                                    // window.mysocket["version_id"]++
+                                    // layer.close(index);
+                                }
+
+                                // console.log(event.data)
+                                break;
+                            default:
+
+                        }
+                    }
                 } catch (e) {
                     console.log(e);
                 }
